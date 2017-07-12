@@ -1,4 +1,4 @@
-﻿#!/usr/bin/python
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
 
 import numpy as np
@@ -10,7 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from sklearn.pipeline import Pipeline
 
-# test git
+# test git test
 def model():
     np.set_printoptions(suppress=True)
     # x = data_temp_num[['order_id', 'order_dow', 'order_hour_of_day', 'days_since_prior_order']]
