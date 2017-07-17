@@ -7,7 +7,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler, PolynomialFeatures, scale
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
+# from sklearn import preprocessing
 from sklearn.pipeline import Pipeline
 from sklearn import svm
 import math
@@ -58,9 +59,9 @@ def model():
     #                ('clf', LogisticRegression())])
 
     # lr = DecisionTreeClassifier(criterion='entropy')
-    lr = RandomForestClassifier(n_estimators=200, criterion='entropy', class_weight={0: 0.2, 1: 1})
+    # lr = RandomForestClassifier(n_estimators=200, criterion='entropy', class_weight={0: 0.1, 1: 1})
     # lr = svm.SVC(C=1, kernel='linear')
-    # lr = svm.SVC(C=0.8, kernel='rbf', gamma=10, class_weight={0: 1, 1: 10})
+    lr = svm.SVC(C=0.8, kernel='rbf', gamma=10, class_weight={0: 0.08, 1: 1})
     lr.fit(x_train_s, y_train.ravel())
 
     y_hat = lr.predict(x_train_s)
@@ -110,9 +111,6 @@ if __name__ == '__main__':
     # order_pri_tr.to_csv('order_pri_tr.csv', index=False, sep=',')
     # order_pri_te.to_csv('order_pri_te.csv', index=False, sep=',')
 
-
-
-
     # read temp data
     data_pri_tr = pd.read_csv('data_pri_tr.csv')
     print len(data_pri_tr)
@@ -128,33 +126,7 @@ if __name__ == '__main__':
     # print len(order_pri_te)
 
     data_tr = pd.read_csv('order_products__train.csv')
-    # # data_tr_re = data_tr[data_tr['reordered'] == 1]
-
-    products = pd.read_csv('products.csv')
-    print len(products)
-
-    data_pri_tr = pd.merge(data_pri_tr, products, how='inner', on='product_id')
-    print len(data_pri_tr)
-    data_pri_tr.drop(['product_id'], axis=1, inplace=True)
-    data_pri_tr['product_id'] = data_pri_tr['aisle_id']
-    data_pri_tr.drop(['aisle_id', 'product_name', 'department_id'], axis=1, inplace=True)
-    print data_pri_tr.head()
-    data_pri_te = pd.merge(data_pri_te, products, how='inner', on='product_id')
-    print len(data_pri_te)
-    data_pri_te.drop(['product_id'], axis=1, inplace=True)
-    data_pri_te['product_id'] = data_pri_te['aisle_id']
-    data_pri_te.drop(['aisle_id', 'product_name', 'department_id'], axis=1, inplace=True)
-    print data_pri_te.head()
-
-    data_tr = pd.merge(data_tr, products, how='inner', on='product_id')
-    data_tr.drop(['product_id'], axis=1, inplace=True)
-    data_tr['product_id'] = data_tr['aisle_id']
-    data_tr.drop(['aisle_id', 'product_name', 'department_id'], axis=1, inplace=True)
-    print data_tr.head()
-    data_tr['key1'] = data_tr['order_id']
-    data_tr['key2'] = data_tr['product_id']
-    data_tr = data_tr.groupby(['key1', 'key2']).max()
-    print data_tr.head()
+    # data_tr_re = data_tr[data_tr['reordered'] == 1]
 
     pri_tr_pro_list = data_pri_tr.product_id.unique()
     pri_te_pro_list = data_pri_te.product_id.unique()
@@ -192,7 +164,7 @@ if __name__ == '__main__':
     x_pre_list = pd.DataFrame()
     x_re_list = pd.DataFrame()
     i = 0
-    pro_list = pro_list[0: 50]
+    pro_list = pro_list[50: 5000]
     for product_id in pro_list:
         i += 1
         print i, product_id
@@ -284,13 +256,13 @@ if __name__ == '__main__':
             x_pre_user['predict'] = y_pre
             x_user['predict'] = x_all_pre
         elif len(xy) == 3:
-            y_pre = np.array(np.floor(y_train.values.sum() / 2) * len(x_pre_user))
-            x_all_pre = np.array(np.floor(y_train.values.sum() / 2) * len(xy))
+            y_pre = np.array(np.floor(y.values.sum() / 2) * len(x_pre_user))
+            x_all_pre = np.array(np.floor(y.values.sum() / 2) * len(xy))
             print '=3', y_pre
             x_pre_user['predict'] = y_pre
             x_user['predict'] = x_all_pre
         elif len(xy) == 2:
-            if y_train.values.sum() == 0:
+            if y.values.sum() == 0:
                 y_pre = np.array([0] * len(x_pre_user))
                 x_all_pre = np.array([0] * len(xy))
             else:
@@ -300,8 +272,8 @@ if __name__ == '__main__':
             x_pre_user['predict'] = y_pre
             x_user['predict'] = x_all_pre
         else:
-            y_pre = np.array(y_train.values[0])
-            x_all_pre = np.array(y_train.values[0])
+            y_pre = np.array(y.values[0])
+            x_all_pre = np.array(y.values[0])
             print '=1', y_pre
             x_pre_user['predict'] = y_pre
             x_user['predict'] = x_all_pre
@@ -314,7 +286,9 @@ if __name__ == '__main__':
     print len(y_pre_list), y_pre_list['predict'].sum()
     y_pre_list = y_pre_list[y_pre_list['predict'] == 1]
     y_pre_list = y_pre_list[['order_id', 'product_id']]
-    y_pre_list = y_pre_list.sort_values(['order_id', 'product_id'])
+    # y_pre_list.to_csv('y_pre_list.csv', index=False, sep=',')
+    y_pre_list.to_csv('y_pre_list.csv', index=False, sep=',', mode='a', header=False)
+    # y_pre_list = y_pre_list.sort_values(['order_id', 'product_id'])
 
     print len(x_pre_list), x_pre_list['predict'].sum()
     x_pre_list = x_pre_list[x_pre_list['predict'] == 1]

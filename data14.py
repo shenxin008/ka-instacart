@@ -8,6 +8,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
+# from sklearn import preprocessing
 from sklearn.pipeline import Pipeline
 from sklearn import svm
 import math
@@ -48,33 +49,38 @@ def split_train_test(text_df, size=0.5):
 
 
 def model():
+    scaler = StandardScaler()
+    x_train_s = scaler.fit_transform(x_train)
+    x_test_s = scaler.transform(x_test)
+    x_s = scaler.transform(x)
+    x_pre_s = scaler.transform(x_pre)
     # lr = Pipeline([('sc', StandardScaler()),
     #                ('poly', PolynomialFeatures(degree=1)),
     #                ('clf', LogisticRegression())])
 
     # lr = DecisionTreeClassifier(criterion='entropy')
-    lr = RandomForestClassifier(n_estimators=200, criterion='entropy', class_weight={0: 0.1, 1: 1})
+    # lr = RandomForestClassifier(n_estimators=200, criterion='entropy', class_weight={0: 0.1, 1: 1})
     # lr = svm.SVC(C=1, kernel='linear')
-    # lr = svm.SVC(C=0.8, kernel='rbf', gamma=10, class_weight={0: 1, 1: 10})
-    lr.fit(x_train, y_train.ravel())
+    lr = svm.SVC(C=0.8, kernel='rbf', gamma=10, class_weight={0: 0.08, 1: 1})
+    lr.fit(x_train_s, y_train.ravel())
 
-    y_hat = lr.predict(x_train)
+    y_hat = lr.predict(x_train_s)
     train_acc_rate = 100*np.mean(y_hat == y_train.ravel())
     train_acc_rate_list.append(train_acc_rate)
-    x_train_len.append(len(x_train))
+    x_train_len.append(len(x_train_s))
     # print train_acc_rate
 
-    test_y_hat = lr.predict(x_test)
+    test_y_hat = lr.predict(x_test_s)
     test_acc_rate = 100*np.mean(test_y_hat == y_test.ravel())
     test_acc_rate_list.append(test_acc_rate)
-    x_test_len.append(len(x_test))
+    x_test_len.append(len(x_test_s))
     # print test_acc_rate
-    x_all_pred = lr.predict(x)
+    x_all_pred = lr.predict(x_s)
     all_acc_rate = 100*np.mean(x_all_pred == y.ravel())
     all_acc_rate_list.append(all_acc_rate)
-    x_all_len.append(len(x))
+    x_all_len.append(len(x_s))
 
-    y_pred = lr.predict(x_pre)
+    y_pred = lr.predict(x_pre_s)
     # print y.values.mean(), np.mean(x_all_pred)
     print y_test.values.mean(), np.mean(test_y_hat)
     # print 'test_y_hat', test_y_hat
@@ -349,9 +355,12 @@ if __name__ == '__main__':
             f = 0
         else:
             same = pd.merge(x_re_temp, x_pre_temp, how='inner', on='product_id')
-            p = len(same) / len(x_pre_temp)
-            r = len(same) / len(x_re_temp)
-            f = (2 * p * r) / (p + r)
+            if len(same) == 0:
+                f = 0
+            else:
+                p = len(same) / len(x_pre_temp)
+                r = len(same) / len(x_re_temp)
+                f = (2 * p * r) / (p + r)
         f_list.append(f)
     mfs = np.mean(f_list)
     print mfs
